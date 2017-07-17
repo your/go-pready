@@ -1,0 +1,21 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "VXQB7sYaVvKpvbmnW8qekMz/gws=",
+			"path": "github.com/go-resty/resty",
+			"revision": "cf81ed0a604d373be63b4c036c6b05c06520615f",
+			"revisionTime": "2017-06-22T19:16:15Z",
+			"version": "=v0.13",
+			"versionExact": "v0.13"
+		},
+		{
+			"checksumSHA1": "+7gSOeJWKSUhXho9cQPtyzJL+ok=",
+			"path": "golang.org/x/net/publicsuffix",
+			"revision": "b3756b4b77d7b13260a0a2ec658753cf48922eac",
+			"revisionTime": "2017-07-16T02:53:09Z"
+		}
+	],
+	"rootPath": "pready"
+}
