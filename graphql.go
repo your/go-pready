@@ -30,6 +30,9 @@ var graphQLquery = `query ($limit: Int!) {
               totalCount
               edges {
                 node {
+                  author {
+                    login
+                  }
                   state
                 }
               }
@@ -77,6 +80,9 @@ type GraphQLResponseBody struct {
 								TotalCount int `json:"totalCount"`
 								Edges      []struct {
 									Node struct {
+										Author struct {
+											Login string `json:"login"`
+										} `json:"author"`
 										State string `json:"state"`
 									} `json:"node"`
 								} `json:"edges"`

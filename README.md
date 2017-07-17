@@ -12,7 +12,12 @@ type PullRequest struct {
 	Title   string
 	URL     string
 	Labels  []string
-	Reviews []string
+	Reviews []Review
+}
+
+type Review struct {
+	AuthorLogin string
+	State       string
 }
 
 func (pr *PullRequest) Wip() bool {
@@ -30,11 +35,7 @@ func (pr *PullRequest) Approved() bool {
 
 ## Configuration
 
-```
-go get -u github.com/your/go-pready/...
-```
-
-Then, change at least `githubAPIToken` and `repositories` in [`constants.go`](../master/constants.go).
+Change at least `githubAPIToken` and `repositories` in [`constants.go`](../master/constants.go).
 
 ```
 go build
@@ -49,7 +50,6 @@ And it was a boring Saturday.
 
 ## TODO
 
-  - `Approved()` should uniq by author first and take into account the last review state only
   - Connect (internally?) to a Slack bot (didn't find any nice implementation in go yet... disappointed)
   - Test (oh well, ...)
 
