@@ -19,7 +19,12 @@ type PullRequest struct {
 	Title   string
 	URL     string
 	Labels  []string
-	Reviews []string
+	Reviews []Review
+}
+
+type Review struct {
+	AuthorLogin string
+	State       string
 }
 
 // Wip is a PullRequest's struct method that returns true if the PR is labeled as "WIP".
@@ -39,8 +44,31 @@ func (pr *PullRequest) Reviewed() bool {
 // Approved is a PullRequest's struct method that returns true if there are enough
 // approved reviews and no changes requested, false otherwise.
 func (pr *PullRequest) Approved() bool {
-	return stringOccurencesInSlice("APPROVED", pr.Reviews) >= minApprovals &&
-		!isStringInSlice("CHANGES_REQUESTED", pr.Reviews)
+	reviewers := pr.Reviewers()
+	states := []string{}
+
+	for _, reviewer := range reviewers {
+		for i := len(pr.Reviews) - 1; i > 0; i-- {
+			if pr.Reviews[i].AuthorLogin == reviewer {
+				states = append(states, pr.Reviews[i].State)
+				break
+			}
+		}
+	}
+
+	return stringOccurencesInSlice("APPROVED", states) >= minApprovals &&
+		!isStringInSlice("CHANGES_REQUESTED", states)
+}
+
+// Reviewers is a PullRequest's struct method that returns all the reviewers, without duplicates.
+func (pr *PullRequest) Reviewers() []string {
+	reviewers := []string{}
+
+	for _, review := range pr.Reviews {
+		reviewers = append(reviewers, review.AuthorLogin)
+	}
+
+	return uniqueSlice(reviewers)
 }
 
 func checkRepositories() {
@@ -68,17 +96,30 @@ func checkRepositories() {
 			return
 		}
 
+		pendingReviewPRs := []PullRequest{}
 		pendingApprovalPRs := []PullRequest{}
 		pendingMergePRs := []PullRequest{}
 
 		for _, pr := range repo.PullRequests {
 			if !pr.Wip() {
-				if !pr.Reviewed() || !pr.Approved() {
-					pendingApprovalPRs = append(pendingApprovalPRs, pr)
-				} else if pr.Approved() {
+				if !pr.Reviewed() {
+					pendingReviewPRs = append(pendingReviewPRs, pr)
+					continue
+				}
+				if pr.Approved() {
 					pendingMergePRs = append(pendingMergePRs, pr)
+				} else {
+					pendingApprovalPRs = append(pendingApprovalPRs, pr)
 				}
 			}
+		}
+
+		for _, pr := range pendingReviewPRs {
+			log.Printf("PR #%s \"%s\" is still waiting for review! –– %s\n", strconv.Itoa(pr.Number), pr.Title, pr.URL)
+		}
+
+		for _, pr := range pendingMergePRs {
+			log.Printf("PR #%s \"%s\" is still waiting for merge! –– %s\n", strconv.Itoa(pr.Number), pr.Title, pr.URL)
 		}
 
 		if len(pendingApprovalPRs) == 0 {
@@ -88,10 +129,6 @@ func checkRepositories() {
 
 		for _, pr := range pendingApprovalPRs {
 			log.Printf("PR #%s \"%s\" is still waiting for approval! –– %s\n", strconv.Itoa(pr.Number), pr.Title, pr.URL)
-		}
-
-		for _, pr := range pendingMergePRs {
-			log.Printf("PR #%s \"%s\" is still waiting for merge! –– %s\n", strconv.Itoa(pr.Number), pr.Title, pr.URL)
 		}
 	}
 }
@@ -105,14 +142,18 @@ func buildRepositoryFromResponse(response *GraphQLResponseBody) Repository {
 		pr := results.PullRequests.Edges[i].Node
 
 		labels := make([]string, pr.Labels.TotalCount)
-		reviews := make([]string, pr.Reviews.TotalCount)
+		reviews := make([]Review, pr.Reviews.TotalCount)
 
 		for j := 0; j < pr.Labels.TotalCount; j++ {
 			labels[j] = pr.Labels.Edges[j].Node.Name
 		}
 
 		for j := 0; j < pr.Reviews.TotalCount; j++ {
-			reviews[j] = pr.Reviews.Edges[j].Node.State
+			review := pr.Reviews.Edges[j].Node
+			reviews[j] = Review{
+				AuthorLogin: review.Author.Login,
+				State:       review.State,
+			}
 		}
 
 		pullRequests[i] = PullRequest{

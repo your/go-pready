@@ -49,7 +49,6 @@ And it was a boring Saturday.
 
 ## TODO
 
-  - `Approved()` should uniq by author first and take into account the last review state only
   - Connect (internally?) to a Slack bot (didn't find any nice implementation in go yet... disappointed)
   - Test (oh well, ...)
 

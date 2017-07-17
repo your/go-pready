@@ -18,3 +18,17 @@ func stringOccurencesInSlice(str string, slice []string) int {
 	}
 	return count
 }
+
+func uniqueSlice(slice []string) []string {
+	uniqueSlice := make(map[string]struct{}, len(slice))
+	j := 0
+	for _, string := range slice {
+		if _, seen := uniqueSlice[string]; seen {
+			continue
+		}
+		uniqueSlice[string] = struct{}{}
+		slice[j] = string
+		j++
+	}
+	return slice[:j]
+}
