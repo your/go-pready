@@ -11,8 +11,32 @@
 			"versionExact": "v0.13"
 		},
 		{
+			"checksumSHA1": "SDdJQg0eCU2IfLSuUafSJwQPjh4=",
+			"path": "github.com/nlopes/slack",
+			"revision": "ca8436d76f805ec1e682eaae2de3c3a9bc894b0f",
+			"revisionTime": "2017-07-01T16:13:22Z"
+		},
+		{
+			"checksumSHA1": "2m5jU6DJgatayvTn4yGYyoagjZ0=",
+			"path": "github.com/your/go-slackbot",
+			"revision": "098fc320f1b3ce6e89704c035cca296dbcaf6c6d",
+			"revisionTime": "2017-04-06T20:34:48Z"
+		},
+		{
+			"checksumSHA1": "dr5+PfIRzXeN+l1VG+s0lea9qz8=",
+			"path": "golang.org/x/net/context",
+			"revision": "b3756b4b77d7b13260a0a2ec658753cf48922eac",
+			"revisionTime": "2017-07-16T02:53:09Z"
+		},
+		{
 			"checksumSHA1": "+7gSOeJWKSUhXho9cQPtyzJL+ok=",
 			"path": "golang.org/x/net/publicsuffix",
+			"revision": "b3756b4b77d7b13260a0a2ec658753cf48922eac",
+			"revisionTime": "2017-07-16T02:53:09Z"
+		},
+		{
+			"checksumSHA1": "7EZyXN0EmZLgGxZxK01IJua4c8o=",
+			"path": "golang.org/x/net/websocket",
 			"revision": "b3756b4b77d7b13260a0a2ec658753cf48922eac",
 			"revisionTime": "2017-07-16T02:53:09Z"
 		}

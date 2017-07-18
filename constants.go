@@ -4,8 +4,8 @@ import "time"
 
 // Change at will.
 const minApprovals int = 2
-const checkInterval time.Duration = 30000
-const githubAPIToken string = ""
+const checkInterval time.Duration = 450000
+const notificationChannel string = "general"
 
-// TODO: make this var at runtime
+// TODO: edit this var at runtime
 var repositories = [...]string{"_repo"}

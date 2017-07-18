@@ -2,11 +2,13 @@ package main
 
 import (
 	"time"
+
+	slackbot "github.com/your/go-slackbot"
 )
 
-func run() {
+func runCron(bot *slackbot.Bot) {
 	for {
-		checkRepositories()
+		checkRepositories(bot)
 		time.Sleep(checkInterval * time.Millisecond)
 	}
 }

@@ -1,10 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
 	"strconv"
 
 	"github.com/go-resty/resty"
+	slackbot "github.com/your/go-slackbot"
 )
 
 // Repository represents one repository containing all open pull requests.
@@ -22,6 +25,7 @@ type PullRequest struct {
 	Reviews []Review
 }
 
+// Review represents a pull request review with an author and state.
 type Review struct {
 	AuthorLogin string
 	State       string
@@ -71,7 +75,7 @@ func (pr *PullRequest) Reviewers() []string {
 	return uniqueSlice(reviewers)
 }
 
-func checkRepositories() {
+func checkRepositories(bot *slackbot.Bot) {
 	if len(repositories) == 0 {
 		log.Println("No repositories to loop through, you might want to add some.")
 		return
@@ -79,20 +83,20 @@ func checkRepositories() {
 
 	for _, repo := range repositories {
 		resp, err := resty.R().
-			SetHeader("Authorization", "bearer "+githubAPIToken).
+			SetHeader("Authorization", "bearer "+os.Getenv("GITHUB_TOKEN")).
 			SetBody(buildGraphQLRequestBody(repo)).
 			SetResult(&GraphQLResponseBody{}).
 			Post("https://api.github.com/graphql")
 
 		if err != nil {
-			log.Println("API connection error:", err)
+			log.Println("Github API Error:", err)
 			return
 		}
 
 		repo := buildRepositoryFromResponse(resp.Result().(*GraphQLResponseBody))
 
 		if len(repo.Name) == 0 {
-			log.Println("Something went wrong! –– Did you specify a valid Github API Token?")
+			log.Println("Something went wrong! – Did you specify a valid Github API Token?")
 			return
 		}
 
@@ -115,20 +119,28 @@ func checkRepositories() {
 		}
 
 		for _, pr := range pendingReviewPRs {
-			log.Printf("PR #%s \"%s\" is still waiting for review! –– %s\n", strconv.Itoa(pr.Number), pr.Title, pr.URL)
+			msg := fmt.Sprintf(":neutral_face: PR #%s \"%s\" is still waiting for review! :arrow_right: %s\n", strconv.Itoa(pr.Number), pr.Title, pr.URL)
+			sendMessage(bot, msg, notificationChannel)
+			log.Printf(msg)
 		}
 
 		for _, pr := range pendingMergePRs {
-			log.Printf("PR #%s \"%s\" is still waiting for merge! –– %s\n", strconv.Itoa(pr.Number), pr.Title, pr.URL)
+			msg := fmt.Sprintf(":champagne: PR #%s \"%s\" is still waiting for merge! :arrow_right: %s\n", strconv.Itoa(pr.Number), pr.Title, pr.URL)
+			sendMessage(bot, msg, notificationChannel)
+			log.Printf(msg)
 		}
 
 		if len(pendingApprovalPRs) == 0 {
-			log.Printf("There are no pending approval PRs for repository \"%s\" –– great!", repo.Name)
+			msg := fmt.Sprintf(":tada: There are no pending approval PRs for repository `%s` :sunglasses: ...great!", repo.Name)
+			sendMessage(bot, msg, notificationChannel)
+			log.Printf(msg)
 			return
 		}
 
 		for _, pr := range pendingApprovalPRs {
-			log.Printf("PR #%s \"%s\" is still waiting for approval! –– %s\n", strconv.Itoa(pr.Number), pr.Title, pr.URL)
+			msg := fmt.Sprintf(":cry: PR #%s \"%s\" is still waiting for approval! :arrow_right: %s\n", strconv.Itoa(pr.Number), pr.Title, pr.URL)
+			sendMessage(bot, msg, notificationChannel)
+			log.Printf(msg)
 		}
 	}
 }

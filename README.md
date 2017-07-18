@@ -1,6 +1,6 @@
 # go-pready
 
-Use Github GraphQL API to return observed repositories' Pull Requests info (*approval* status, mainly).
+Slack bot notifications for Pull Requests' review/approval status.
 
 ## Internals
 
@@ -35,11 +35,30 @@ func (pr *PullRequest) Approved() bool {
 
 ## Configuration
 
-Change at least `githubAPIToken` and `repositories` in [`constants.go`](../master/constants.go).
+Change at least `repositories` (and maybe `notificationChannel`?) in [`constants.go`](../master/constants.go).
 
 ```
 go build
-./pready
+GITHUB_TOKEN=My1337GithubAPIToken \
+SLACK_TOKEN=My1338SlackAPIToken ./pready
+```
+
+## Demo
+
+```
+...
+
+2017/07/18 01:25:32 :cry: PR #1 "Test PR" is still waiting for approval! :arrow_right: https://github.com/your/_repo/pull/1
+
+...
+
+2017/07/18 01:25:56 :champagne: PR #1 "Test PR" is still waiting for merge! :arrow_right: https://github.com/your/_repo/pull/1
+
+...
+
+2017/07/18 01:25:57 :tada: There are no pending approval PRs for repository `_repo` :sunglasses: great!
+
+...
 ```
 
 ## Why
@@ -50,7 +69,7 @@ And it was a boring Saturday.
 
 ## TODO
 
-  - Connect (internally?) to a Slack bot (didn't find any nice implementation in go yet... disappointed)
+  - Github webhooks(?)
   - Test (oh well, ...)
 
 ## License: MIT
