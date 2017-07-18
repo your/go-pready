@@ -5,6 +5,8 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"regexp"
+	"strings"
 
 	"github.com/nlopes/slack"
 	slackbot "github.com/your/go-slackbot"
@@ -20,10 +22,13 @@ const (
 )
 
 var greetingPrefixes = []string{"Hey", "Hi", "Hello"}
+var repositories []string
+var githubURLRegex, _ = regexp.Compile(`http(s)?:\/\/github.com\/[\w-]+\/[\w-]+(\/)?`)
 
 func runBot() {
 	bot := slackbot.New(os.Getenv("SLACK_TOKEN"))
-	go runCron(bot)
+
+	go runCron(bot, &repositories)
 
 	toMe := bot.Messages(slackbot.DirectMessage, slackbot.DirectMention).Subrouter()
 
@@ -31,6 +36,8 @@ func runBot() {
 	toMe.Hear(hi).MessageHandler(helloHandler)
 	bot.Hear(hi).MessageHandler(helloHandler)
 	bot.Hear("help|probot help").MessageHandler(helpHandler)
+	bot.Hear(`^review watch (\S+)\s*(\w+)?`).MessageHandler(reviewWatchHandler)
+	bot.Hear(`^review unwatch (\S+)\s*(\w+)?`).MessageHandler(reviewUnwatchHandler)
 	bot.Hear("(probot ).*").MessageHandler(catchAllHandler)
 	bot.Run()
 }
@@ -72,6 +79,48 @@ func helloHandler(ctx context.Context, bot *slackbot.Bot, evt *slack.MessageEven
 	}
 }
 
+func reviewWatchHandler(ctx context.Context, bot *slackbot.Bot, evt *slack.MessageEvent) {
+	var inputMsg = evt.Msg.Text
+	var outputMsg string
+
+	if stringMatchesRegex(inputMsg, githubURLRegex) {
+		repo := getRepoNameFromMsg(inputMsg, githubURLRegex)
+
+		if isStringInSlice(repo, repositories) {
+			outputMsg = fmt.Sprintf(":neutral_face: Repository `%s` is already in the watchlist.", repo)
+		} else {
+			repositories = append(repositories, repo)
+
+			outputMsg = fmt.Sprintf(":wine_glass: Added repository `%s` to watchlist.", repo)
+		}
+	} else {
+		outputMsg = ":warning: Sorry, the URL is invalid, please double check it."
+	}
+
+	bot.Reply(evt, outputMsg, withoutTyping)
+}
+
+func reviewUnwatchHandler(ctx context.Context, bot *slackbot.Bot, evt *slack.MessageEvent) {
+	var inputMsg = evt.Msg.Text
+	var outputMsg string
+
+	if stringMatchesRegex(inputMsg, githubURLRegex) {
+		repo := getRepoNameFromMsg(inputMsg, githubURLRegex)
+
+		if isStringInSlice(repo, repositories) {
+			removeStringFromSlice(repo, &repositories)
+
+			outputMsg = fmt.Sprintf(":wine_glass: Removed repository `%s` from watchlist.", repo)
+		} else {
+			outputMsg = fmt.Sprintf(":neutral_face: Repository `%s` is not in the watchlist.", repo)
+		}
+	} else {
+		outputMsg = ":warning: Sorry, the URL is invalid, please double check it."
+	}
+
+	bot.Reply(evt, outputMsg, withoutTyping)
+}
+
 func catchAllHandler(ctx context.Context, bot *slackbot.Bot, evt *slack.MessageEvent) {
 	msg := fmt.Sprintf("Hey, I don't know how to help you with that. :confused:\n\n%s", helpText)
 	bot.Reply(evt, msg, withoutTyping)
@@ -79,4 +128,10 @@ func catchAllHandler(ctx context.Context, bot *slackbot.Bot, evt *slack.MessageE
 
 func helpHandler(ctx context.Context, bot *slackbot.Bot, evt *slack.MessageEvent) {
 	bot.Reply(evt, helpText, withoutTyping)
+}
+
+// TODO: find a better place.
+func getRepoNameFromMsg(str string, r *regexp.Regexp) string {
+	// take 4th from ["http:", "", github.com", "your", "_repo"]
+	return strings.Split(r.FindAllString(str, 1)[0], "/")[4]
 }
