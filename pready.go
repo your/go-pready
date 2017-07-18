@@ -6,9 +6,9 @@ import (
 	slackbot "github.com/your/go-slackbot"
 )
 
-func runCron(bot *slackbot.Bot) {
+func runCron(bot *slackbot.Bot, repositories *[]string) {
 	for {
-		checkRepositories(bot)
+		checkRepositories(bot, repositories)
 		time.Sleep(checkInterval * time.Millisecond)
 	}
 }

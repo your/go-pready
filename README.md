@@ -2,46 +2,24 @@
 
 Slack bot notifications for Pull Requests' review/approval status.
 
-## Internals
-
-A nice `PullRequest` struct with the followings is provided:
-
-```
-type PullRequest struct {
-	Number  int
-	Title   string
-	URL     string
-	Labels  []string
-	Reviews []Review
-}
-
-type Review struct {
-	AuthorLogin string
-	State       string
-}
-
-func (pr *PullRequest) Wip() bool {
-  ...
-}
-
-func (pr *PullRequest) Reviewed() bool {
-  ...
-}
-
-func (pr *PullRequest) Approved() bool {
-  ...
-}
-```
-
 ## Configuration
 
-Change at least `repositories` (and maybe `notificationChannel`?) in [`constants.go`](../master/constants.go).
+Change at least `notificationChannel` in [`constants.go`](../master/constants.go).
 
 ```
 go build
 GITHUB_TOKEN=My1337GithubAPIToken \
 SLACK_TOKEN=My1338SlackAPIToken ./pready
 ```
+
+## Slack commands
+
+Invite the bot to the notification channel and type:
+
+* `review watch <Github repo URL>`
+* `review unwatch <Github repo URL>`
+
+...more to come. :sparkle:
 
 ## Demo
 
@@ -69,6 +47,7 @@ And it was a boring Saturday.
 
 ## TODO
 
+  - Slack commands (in progress)
   - Github webhooks(?)
   - Test (oh well, ...)
 

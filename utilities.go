@@ -1,5 +1,7 @@
 package main
 
+import "regexp"
+
 func isStringInSlice(str string, slice []string) bool {
 	for _, v := range slice {
 		if v == str {
@@ -19,16 +21,34 @@ func stringOccurencesInSlice(str string, slice []string) int {
 	return count
 }
 
-func uniqueSlice(slice []string) []string {
-	uniqueSlice := make(map[string]struct{}, len(slice))
+func uniqueSlice(slice *[]string) {
+	uniqueSlice := make(map[string]struct{}, len(*slice))
 	j := 0
-	for _, string := range slice {
+	for _, string := range *slice {
 		if _, seen := uniqueSlice[string]; seen {
 			continue
 		}
 		uniqueSlice[string] = struct{}{}
-		slice[j] = string
+		(*slice)[j] = string
 		j++
 	}
-	return slice[:j]
+	*slice = (*slice)[:j]
+}
+
+func removeStringFromSlice(str string, slice *[]string) {
+	i := stringIndexOfSlice(str, *slice)
+	*slice = append((*slice)[:i], (*slice)[i+1:]...)
+}
+
+func stringIndexOfSlice(str string, slice []string) int {
+	for i, v := range slice {
+		if v == str {
+			return i
+		}
+	}
+	return -1
+}
+
+func stringMatchesRegex(str string, r *regexp.Regexp) bool {
+	return r.MatchString(str)
 }

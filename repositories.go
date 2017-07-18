@@ -72,16 +72,17 @@ func (pr *PullRequest) Reviewers() []string {
 		reviewers = append(reviewers, review.AuthorLogin)
 	}
 
-	return uniqueSlice(reviewers)
+	uniqueSlice(&reviewers)
+	return reviewers
 }
 
-func checkRepositories(bot *slackbot.Bot) {
-	if len(repositories) == 0 {
+func checkRepositories(bot *slackbot.Bot, repositories *[]string) {
+	if len(*repositories) == 0 {
 		log.Println("No repositories to loop through, you might want to add some.")
 		return
 	}
 
-	for _, repo := range repositories {
+	for _, repo := range *repositories {
 		resp, err := resty.R().
 			SetHeader("Authorization", "bearer "+os.Getenv("GITHUB_TOKEN")).
 			SetBody(buildGraphQLRequestBody(repo)).
@@ -120,29 +121,30 @@ func checkRepositories(bot *slackbot.Bot) {
 
 		for _, pr := range pendingReviewPRs {
 			msg := fmt.Sprintf(":neutral_face: PR #%s \"%s\" is still waiting for review! :arrow_right: %s\n", strconv.Itoa(pr.Number), pr.Title, pr.URL)
-			sendMessage(bot, msg, notificationChannel)
-			log.Printf(msg)
+			sendPRNotificationMessage(bot, msg)
 		}
 
 		for _, pr := range pendingMergePRs {
 			msg := fmt.Sprintf(":champagne: PR #%s \"%s\" is still waiting for merge! :arrow_right: %s\n", strconv.Itoa(pr.Number), pr.Title, pr.URL)
-			sendMessage(bot, msg, notificationChannel)
-			log.Printf(msg)
+			sendPRNotificationMessage(bot, msg)
 		}
 
 		if len(pendingApprovalPRs) == 0 {
 			msg := fmt.Sprintf(":tada: There are no pending approval PRs for repository `%s` :sunglasses: ...great!", repo.Name)
-			sendMessage(bot, msg, notificationChannel)
-			log.Printf(msg)
+			sendPRNotificationMessage(bot, msg)
 			return
 		}
 
 		for _, pr := range pendingApprovalPRs {
 			msg := fmt.Sprintf(":cry: PR #%s \"%s\" is still waiting for approval! :arrow_right: %s\n", strconv.Itoa(pr.Number), pr.Title, pr.URL)
-			sendMessage(bot, msg, notificationChannel)
-			log.Printf(msg)
+			sendPRNotificationMessage(bot, msg)
 		}
 	}
+}
+
+func sendPRNotificationMessage(bot *slackbot.Bot, msg string) {
+	sendMessage(bot, msg, notificationChannel)
+	log.Printf(msg)
 }
 
 func buildRepositoryFromResponse(response *GraphQLResponseBody) Repository {
