@@ -79,7 +79,7 @@ func checkRepositories() {
 
 	for _, repo := range repositories {
 		resp, err := resty.R().
-			SetHeader("Authorization", "bearer "+githubAPIToken).
+			SetHeader("Authorization", "bearer "+os.Getenv("GITHUB_TOKEN")).
 			SetBody(buildGraphQLRequestBody(repo)).
 			SetResult(&GraphQLResponseBody{}).
 			Post("https://api.github.com/graphql")

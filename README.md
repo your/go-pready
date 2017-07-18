@@ -35,11 +35,11 @@ func (pr *PullRequest) Approved() bool {
 
 ## Configuration
 
-Change at least `githubAPIToken` and `repositories` in [`constants.go`](../master/constants.go).
+Change `repositories` in [`constants.go`](../master/constants.go).
 
 ```
 go build
-./pready
+GITHUB_TOKEN=My1337GithubAPIToken ./pready
 ```
 
 ## Why
